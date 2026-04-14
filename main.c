@@ -7,38 +7,47 @@ int sorteador(){
 }
 
 //função que observa as outras duas portas e sorteia até retornar um valor diferente delas.
-int selecaoComparacao(int portaComparada, int portaComparadaNovamente){
-    int porta, i;
+int escolhePortaDiferente(int portaComparada, int portaComparadaNovamente){
+    int porta, i = 0;
     do{
-            porta = sorteador();
-            if (porta == portaComparada || porta == portaComparadaNovamente){
-                i = 1;
-            } else{
-                i = 0;
-            }
+        porta = sorteador();
+        if (porta == portaComparada || porta == portaComparadaNovamente){
+            i = 1;
+        } else{
+            i = 0;
+        }
         } while (i == 1);
     return porta;
 }
 
+//função de jogo manual
 int jogador () {
-    int portaSelecionada, portaApresentador, portaPremio,trocaPorta;
+    int portaSelecionada, portaApresentador, portaPremio, trocaPorta;
     
     portaPremio = sorteador();
     
     printf("Digite a porta que voce quer selecionar: 1, 2 ou 3?\n>>");
     scanf("%d", &portaSelecionada);
-    portaSelecionada -= 1;
-    
-    portaApresentador = selecaoComparacao(portaSelecionada, portaPremio);
+    portaSelecionada -= 1; //adiciona 1 unidade para tornar mais intuitivo para o usuario
+    if (portaSelecionada < 0 || portaSelecionada > 2){
+        printf("Porta invalida.\n");
+        return 0;
+    }
+
+    portaApresentador = escolhePortaDiferente(portaSelecionada, portaPremio);
     printf("O apresentador abriu a porta %d e ela tinha uma cabra!\n", portaApresentador + 1);
+
     printf("Voce deseja trocar de porta?\n1 - Sim\n2 - Nao\n>>");
     scanf("%d", &trocaPorta);
     
-    if (trocaPorta == 1){
-        int backupSelecaoAntiga = portaSelecionada;
-        portaSelecionada = selecaoComparacao(backupSelecaoAntiga, portaApresentador);
+    if (trocaPorta <= 0 || trocaPorta > 2){
+        printf("Comando invalido.\n");
+        return 0;
     }
-    
+
+    if (trocaPorta == 1){
+        portaSelecionada = escolhePortaDiferente(portaSelecionada, portaApresentador);
+    }
     if (portaPremio == portaSelecionada){
         printf("Voce venceu! Parabens pelo novo carro!\n");
         return 1;
@@ -48,6 +57,7 @@ int jogador () {
     }
 }
 
+//função do simulador
 int jogo (int estrategia) {
     int portaSelecionada, portaApresentador, portaPremio;
     
@@ -55,20 +65,18 @@ int jogo (int estrategia) {
     portaSelecionada = sorteador();
     
     //seleciona porta vazia para o apresentador
-    portaApresentador = selecaoComparacao(portaSelecionada, portaPremio);
+    portaApresentador = escolhePortaDiferente(portaSelecionada, portaPremio);
     
     switch (estrategia){
-        case 1: { //caso de trocar de porta
-            int backupSelecaoAntiga = portaSelecionada;
-            portaSelecionada = selecaoComparacao(backupSelecaoAntiga, portaApresentador);
-            } break;
+        case 1: //caso de trocar de porta
+            portaSelecionada = escolhePortaDiferente(portaSelecionada, portaApresentador);
+            break;
         case 2: //caso de manter a porta selecionada
             break;
         case 3: //caso aleatorio
-            portaSelecionada = selecaoComparacao(portaApresentador, portaApresentador);
+            portaSelecionada = escolhePortaDiferente(portaApresentador, portaApresentador);
             break;
     }
-    
     if (portaPremio == portaSelecionada){
         return 1;
     } else {
@@ -77,30 +85,37 @@ int jogo (int estrategia) {
 }
 
 int main() {
-    int rounds, estrategia;
-    int i = 0;
-    int wins = 0;
-    
-    srand(time(NULL));
+    int rounds, estrategia, g = 0;
+
+    srand(time(NULL)); //semente do rand
     
     do{
+        int wins = 0;
+
         printf("Selecione a estrategia do jogador:\n1 - Sempre trocar a porta\n2 - Nunca trocar a porta\n3 - Aleatorio\n4 - Jogar\n>>");
         scanf("%d", &estrategia);
         
         if (estrategia == 4){
             jogador();
-        } else{
-        printf("Digite a quantidade de simulacoes:\n>> ");
-        scanf("%d", &rounds);
-        
-        for (int j = 0; j < rounds; j++){
-            wins = wins + jogo(estrategia);
+        } else if (estrategia < 0 || estrategia > 4){
+            printf("Estrategia invalida.\n");
+        } else {
+            printf("Digite a quantidade de simulacoes:\n>> ");
+            scanf("%d", &rounds);
+            
+            if (rounds <= 0){
+                printf("Quantidade de simulacoes invalida.\n");
+            } else{
+                for (int j = 0; j < rounds; j++){
+                    wins = wins + jogo(estrategia);
+                }
+                printf("Simulacoes: %d\nVitorias: %d\nDerrotas: %d\nTaxa de vitorias: %.2lf%%\n", rounds, wins, (rounds - wins), ((wins * 1.0 / rounds)*100));
+            }
         }
-        
-        printf("Simulacoes: %d\nVitorias: %d\nDerrotas: %d\nTaxa de vitorias: %.2lf%%\n", rounds, wins, (rounds - wins), ((wins * 1.0 / rounds)*100));
-        }
+
         printf("Voce deseja:\n0 - Sair\n1 - Continuar\n>>");
-        scanf("%d", &i);
-    }while (i == 1);
+        scanf("%d", &g);
+    } while (g == 1);
+
     return 0;
 }
